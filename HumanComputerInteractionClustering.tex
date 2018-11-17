@@ -1,0 +1,157 @@
+\documentclass[12pt]{article}
+\usepackage{amsfonts}
+\usepackage{amsbsy}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{rotating}
+\usepackage{graphics}
+\usepackage{epstopdf}
+\usepackage{pdfsync}
+\usepackage{natbib}
+\usepackage{caption}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\textheight 9.2 in \textwidth 6.4 in
+\topmargin -0.15 in       % for PC
+\topmargin -0.7 in       % for Unix
+\oddsidemargin 0.10in %\evensidemargin 0.0in
+\parskip=.00in
+\renewcommand{\baselinestretch} {1.2}
+\makeatletter \setcounter{page}{1}
+\def\singlespace{\def\baselinestretch{1}\@normalsize}
+\def\endsinglespace{}
+
+\@addtoreset{equation}{section}
+\renewcommand{\theequation} {\arabic{section}.\arabic{equation}}
+\renewcommand{\thefigure}{\arabic{figure}}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+\newcommand{\distas}[1]{\mathbin{\overset{#1}{\kern\z@\sim}}}%
+
+
+% begin definition
+\def\conas{\stackrel{a.s.} {\rightarrow}}         % conv. a.s.
+\def\conP{\stackrel{\cal P} {\rightarrow}}        % conv. in probability
+\def\conD{\stackrel{\cal D} {\rightsquigarrow}}        % conv. in distribution
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\def\iid{\stackrel{ iid} {\sim}}          % i.i.d
+\def\hat{\widehat}
+\def\tilde{\widetilde}
+
+%general sets
+\def\cal{\mathcal}
+\def\calA{{\cal A}} %Action sets
+\def\calB{{\cal B}} %Bounded set
+\def\calC{{\cal C}} %Convex set
+\def\calH{{\cal H}} %Hilbert Space
+\def\calS{{\cal S}} %A regular set
+\def\calNr{{\cal N}_r} %Neighborhood
+\def\calX{{\cal X}} %Covariate space
+\def\calF{{\cal F}} %Function space
+
+%special sets
+\def\bbR{{\mathbb{R}}} %Real number
+\def\bbN{{\mathbb{N}}}%Natural number
+\def\bbQ{{\mathbb{Q}}} %Rational number
+\def\bbZ{{\mathbb{Z}}} %Integer
+
+%Matrix
+\def\bA{{\bf A}}
+\def\bB{{\bf B}}
+\def\bC{{\bf C}}
+\def\bD{{\bf D}}
+\def\bH{{\bf H}}
+\def\bI{{\bf I}}
+\def\bJ{{\bf J}}
+\def\bP{{\bf P}}
+\def\bT{{\bf T}}
+\def\bW{{\bf W}}
+\def\bX{{\bf X}}
+
+%vector
+\def\balpha{{\boldsymbol \alpha}}
+\def\bbeta{{\boldsymbol \beta}}
+\def\btheta{{\boldsymbol \theta}}
+
+\def\bzero{{\bf 0}}
+\def\bone{{\bf 1}}
+\def\bbf{{\bf f}}
+\def\br{{\bf r}}
+\def\by{{\bf y}}
+
+%notations
+\def\sign{{\mathrm{sign}}}
+\def\var{{\mathrm{var}}}
+\def\cov{{\mathrm{cov}}}
+\def\ind{\perp\!\!\!\perp}
+
+%others
+\def\mif{\mathrm{if}\ }
+\def\ow{\mathrm{otherwise}\ }
+\def\st{\mathrm{subject\ to}\quad }
+\def\diag{\mathrm{diag}}
+\def\minimize{\mathrm{minimize}\quad }
+\def\maximize{\mathrm{maximize}\quad }
+\def\dom{{\rm dom}}
+
+
+
+\begin{document}
+\title
+{\bf My Data Science Challenging Problems \# 52: Clustering and Labeling with Minimal Human Computer Interactions}
+\author
+{
+*** *** ***,***\\
+XXX \\
+XXXX \\
+\textsl{xxx} }
+\date{\today}
+
+\maketitle
+\begin{abstract}
+\textbf{{\color[rgb]{1,0,0} If you happen to have a solution of this question, please contact Haoda Fu at \href{mailto:fu\_haoda@lilly.com }{fu\_haoda@lilly.com} or  \href{mailto:ffuhaoda@gmail.com}{fuhaoda@gmail.com}  or commit your solution to \url{https://github.com/fuhaoda/DCSP52_HumanComputerInteractionClustering.git} }
+}
+
+\end{abstract}
+
+\noindent {\bf Key words and Phrases}: *** ***.
+
+\noindent {\bf Short title}: ***
+\section{Introduction}
+Clustering analysis (such as k-mean, hierarchical clustering) algorithms are useful to understand the association among subjects. To apply those algorithms, one fundamental question is to define the similarity and dissimilarity between different subjects, i.e. to define $\|X_i - X_j\|$.
+
+For a fixed population, $\{X_1,\cdots, X_n\}$,  using default clustering algorithms, computer may generate one way of clustering the subjects, and the results may not be the desired results as human expected.  We would like to have smallest number of human and computer interactions, so that we can let computer to figure out what are the human desired clustering results.  Details are listed in the next section.
+
+\section{Problem details}
+
+Suppose we have subjects $\{X_1,\cdots, X_n\}$. For each subject $X_i$, we have multiple attributes, i.e. $X_i=(X_{i1},\cdots, X_{ip})$ which is a $p$ dimensional vector.  Let $d(X_i, X_j)=\{\sum_{k=1}^p w_k(X_{ik}-X_{jk})^2\}^{1/2}$ be the human defined norm which has unknown parameters $\{w_1, \cdots, w_k\}$. We would like to estimate $\{w_1, \cdots, w_k\}$ through human and computer interaction from the following steps.
+
+\begin{enumerate}
+	\item Start from a guess, say $w_1=w_2=\cdots=w_k=1$, and apply clustering method, say $k$-mean algorithm, to generate one clustering result $A$.
+	\item Generate another set of weights, and apply the same clustering algorithm (using new weights). Then, we have another clustering result $B$. 
+	\item Ask human to compare result $A$ vs result $B$ to choose a better one, and keep the better result to call it result $A$, then go to step 2.
+	\item Iterate step 2 and step 3 until that the human is happy with the result $A$.  
+\end{enumerate}
+
+How can we generate weights in step 2, so that we can have smallest number of iterations?
+
+This algorithms may be related to convex optimization.
+\section{Potential Applications}
+We often have large amount of unlabeled data. It is infeasible to let human to label each of them. So we need an algorithm to get majority of the label correct with fewest human and computer interactions. Then we can let human expert to figure out the labels in the classification boundary. 
+
+
+\bibliographystyle{/Users/c082213/BoxSync/Help/References/asa_HD}
+\bibliography{/Users/c082213/BoxSync/Help/References/MyStats}
+
+
+\end{document}
