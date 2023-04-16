@@ -58,7 +58,7 @@
 \def\calNr{{\cal N}_r} %Neighborhood
 \def\calX{{\cal X}} %Covariate space
 \def\calF{{\cal F}} %Function space
-
+\def\calQ{{\cal Q}} %Function space
 %special sets
 \def\bbR{{\mathbb{R}}} %Real number
 \def\bbN{{\mathbb{N}}}%Natural number
@@ -104,7 +104,7 @@
 \def\maximize{\mathrm{maximize}\quad }
 \def\dom{{\rm dom}}
 
-
+\usepackage{hyperref}
 
 \begin{document}
 \title
@@ -128,26 +128,43 @@ XXXX \\
 
 \noindent {\bf Short title}: ***
 \section{Introduction}
-Clustering analysis (such as k-mean, hierarchical clustering) algorithms are useful to understand the association among subjects. To apply those algorithms, one fundamental question is to define the similarity and dissimilarity between different subjects, i.e. to define $\|X_i - X_j\|$.
+The field of machine learning is faced with a pressing challenge - an enormous amount of unlabeled data, particularly in the medical field. According to estimates, less than 1\% of medical images are currently labeled and ready for supervised machine learning tasks. Labeling data can be time-consuming and requires domain knowledge from experts who may have limited availability. Therefore, it is crucial to develop algorithms that can efficiently use human expert time to label the data. To address this challenge, investment in research and development is essential. Effective algorithms can leverage the expertise of human annotators more efficiently and unlock the vast potential of the available unlabeled data.
 
-For a fixed population, $\{X_1,\cdots, X_n\}$,  using default clustering algorithms, computer may generate one way of clustering the subjects, and the results may not be the desired results as human expected.  We would like to have smallest number of human and computer interactions, so that we can let computer to figure out what are the human desired clustering results.  Details are listed in the next section.
+Recent research has shown promising results in this area, particularly in the use of active learning, semi-supervised learning, and transfer learning (e.g. our recent JASA paper \href{https://www.tandfonline.com/doi/abs/10.1080/01621459.2021.2019045}{click here}).
+
+We are currently seeking an algorithm capable of handling high-dimensional data such as images, voices, texts, and videos. To make this problem more concrete, we can use the MNIST database as a testbed (\href{https://en.wikipedia.org/wiki/MNIST_database}{click here for reference}). This large labeled database contains 60,000 training images and 10,000 testing images of handwritten digits. Let's remove all the labels for those 60,000 training data to fit our purpose.  Suppose we have only 10 minutes for a person to label the 60,000 images accurately. A naive solution would be to label images one by one, which would take approximately 10 minutes per 600 images. Then, we could train a deep learning algorithm using these 600 labeled images and predict the labels for the remaining 59,400 images. This approach could result in around 80\% accuracy on the entire dataset. How can we do better?
+
+We may quickly indentify some limitations of this naive approach:
+
+\begin{itemize}
+	\item This naive approach randomly selected those 600 images and query the human one by one. Can we enable the computer to ask the most relevant questions based on what the algorithm has already learned? 
+	\item Labeling one image at a time is not the only query method available. We could also ask whether two images belong to the same class or what the majority class is among 11 images. Each query method ($Q_i$) is associated with a cost ($C_i$) and potentially the probability of correct answers ($p_i$). Therefore, we have a choice of query as $\calQ = \{(Q_i, C_i, p_i), i=1,\cdots, k\}$. 
+\end{itemize}
+
 
 \section{Problem details}
 
-Suppose we have subjects $\{X_1,\cdots, X_n\}$. For each subject $X_i$, we have multiple attributes, i.e. $X_i=(X_{i1},\cdots, X_{ip})$ which is a $p$ dimensional vector.  Let $d(X_i, X_j)=\{\sum_{k=1}^p w_k(X_{ik}-X_{jk})^2\}^{1/2}$ be the human defined norm which has unknown parameters $\{w_1, \cdots, w_k\}$. We would like to estimate $\{w_1, \cdots, w_k\}$ through human and computer interaction from the following steps.
+
+One potential solution that we are exploring is learning a metric that aligns with our labeling objective.
+
+In the ideal case, we could directly apply a non-supervised clustering algorithm, such as the K-means method, and obtain 10 classes for the handwritten zip codes that perfectly correspond to the digits from 0 to 9. Unfortunately, this is not typically the case. The reason is that clustering analysis algorithms, such as K-means and hierarchical clustering, rely on the similarity and dissimilarity between different subjects, i.e. a metric. However, the metric used in clustering methods may not align with our objective of labeling. Therefore, we are investigating methods to iteratively learn a metric that better aligns with our objective and can improve the accuracy of labeling.
+
+
+Suppose we have subjects $\{X_1,\cdots, X_n\}$. For each subject $X_i$, we have multiple attributes, i.e. $X_i=(X_{i1},\cdots, X_{ip})$ which is a $p$ dimensional vector.  Let $d(X_i, X_j)=\{ (X_i-X_j)^\top A (X_i-X_j) \}^{1/2}$ be the human defined norm which has unknown parameters in a semi-positive definite matrix $A$. We would like to estimate $A$ through human and computer interaction from the following steps. The collection of $ \calA ={A} $ can be considered as a space. 
 
 \begin{enumerate}
-	\item Start from a guess, say $w_1=w_2=\cdots=w_k=1$, and apply clustering method, say $k$-mean algorithm, to generate one clustering result $A$.
-	\item Generate another set of weights, and apply the same clustering algorithm (using new weights). Then, we have another clustering result $B$. 
-	\item Ask human to compare result $A$ vs result $B$ to choose a better one, and keep the better result to call it result $A$, then go to step 2.
+	\item Start from a guess, say $A=I$, or some $A$ comes from transfer learning.
+	\item Choose a query method from $\calQ$ to query a human.
+	\item The result can be denoted as $f(A)$ to measure how good of the current $A$.
 	\item Iterate step 2 and step 3 until that the human is happy with the result $A$.  
 \end{enumerate}
 
-How can we generate weights in step 2, so that we can have smallest number of iterations?
-
-This algorithms may be related to convex optimization.
-\section{Potential Applications}
-We often have large amount of unlabeled data. It is infeasible to let human to label each of them. So we need an algorithm to get majority of the label correct with fewest human and computer interactions. Then we can let human expert to figure out the labels in the classification boundary. 
+We need to consider a few things in the above approach, for example, 
+\begin{itemize}
+	\item How can we know how complex of the space  and what is the current status?
+	\item How can we develop a method to choose different types of query? and generate most informative samples corresponding to this query?
+	\item How can we develop an optimization algorithm on space $\calA$? 
+\end{itemize}
 
 
 \bibliographystyle{/Users/c082213/BoxSync/Help/References/asa_HD}
