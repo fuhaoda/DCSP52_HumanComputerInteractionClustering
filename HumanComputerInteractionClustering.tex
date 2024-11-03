@@ -142,29 +142,42 @@ We may quickly indentify some limitations of this naive approach:
 \end{itemize}
 
 
-\section{Problem details}
+\subsection{Data Labeling}
+In healthcare and medical research, majority of data remain unlabeled and it is estimated that labeled data in medical and healthcare industry is less than 2\%, particularly in areas such as medical imaging and electronic health records (EHRs). The labeling of this data is critical for training efficient AI and machine learning (ML) models, which have the potential to drive innovation and improve healthcare quality. Data labeling in healthcare involves categorizing and annotating data to enhance its utility for applications such as clinical research, predictive analytics, personalized medicine, and clinical decision support.
 
+Labeled data is essential for developing accurate AI/ML models that can support healthcare applications, including early disease detection, treatment planning, and decision-making. As the demand for healthcare analytics and AI-driven solutions grows, so does the need for high-quality labeled data. Specialized labeling tasks, such as medical coding, clinical entity recognition, and image annotation, are crucial for transforming raw data into actionable insights. Accurate data labeling not only improves the performance of AI/ML models but also enables advancements in clinical decision support, medical research, and population health management.
 
-One potential solution that we are exploring is learning a metric that aligns with our labeling objective.
+Labeling data in the medical and healthcare fields often requires specialized expertise, such as knowledge of pathology for interpreting CT scans. Experts typically require years of training to acquire this knowledge, which creates a fundamental challenge: while there is a large volume of unlabeled data, there is limited time available for experts to dedicate to labeling. For instance, in the context of labeling medical images, although the time spent labeling each image may be consistent, not every labeled image contributes equally to improving model performance. This raises a critical question: how can we effectively utilize expert time to label data in a way that maximizes the efficiency of model training?
 
-In the ideal case, we could directly apply a non-supervised clustering algorithm, such as the K-means method, and obtain 10 classes for the handwritten zip codes that perfectly correspond to the digits from 0 to 9. Unfortunately, this is not typically the case. The reason is that clustering analysis algorithms, such as K-means and hierarchical clustering, rely on the similarity and dissimilarity between different subjects, i.e. a metric. However, the metric used in clustering methods may not align with our objective of labeling. Therefore, we are investigating methods to iteratively learn a metric that better aligns with our objective and can improve the accuracy of labeling.
+To illustrate this research problem, consider the MNIST dataset of handwritten digits, which consists of 70,000 images of digits ranging from 0 to 9, often used for training various machine learning models. In our scenario, we have the data represented as \(\{(X_i, y_i), i=1, \ldots, 70,000\}\). Suppose we do not know the true labels \(y_i\), and our task is to interactively and iteratively engage a human expert to label a selection of these images \(X_i\) in order to achieve the highest possible accuracy across all 70,000 images. Assuming that computational time is negligible and we have limited expert time—say, 10 minutes—what would be the best strategy for labeling? 
 
+One naive approach would involve asking the expert to label images randomly, one after another. If we assume that it takes approximately one second for a person to label a single image, then within 10 minutes, they could label about 600 images. However, this method is far from optimal. A more efficient strategy could involve allowing the expert to label an initial set of 300 images, after which we train a preliminary model. Using this model, we could then propose an additional 300 images that the model identifies as most informative for improving its performance. Intuitively, this second approach is likely to yield better results than the first. Furthermore, we could enhance the labeling process by enabling the model to ask different types of questions, such as whether a group of five images belongs to the same category or whether two images depict the same digit. Our research question focuses on developing an efficient strategy that facilitates human-computer interaction, allowing us to extract the most valuable information from experts by posing the most effective questions.
 
-Suppose we have subjects $\{X_1,\cdots, X_n\}$. For each subject $X_i$, we have multiple attributes, i.e. $X_i=(X_{i1},\cdots, X_{ip})$ which is a $p$ dimensional vector.  Let $d(X_i, X_j)=\{ (X_i-X_j)^\top A (X_i-X_j) \}^{1/2}$ be the human defined norm which has unknown parameters in a semi-positive definite matrix $A$. We would like to estimate $A$ through human and computer interaction from the following steps. The collection of $ \calA ={A} $ can be considered as a space. 
+One potential solution we are exploring involves learning a metric that aligns with our labeling objective.
+
+Ideally, we could directly apply a non-supervised clustering algorithm, such as the K-means method, to obtain 10 classes for the handwritten zip codes that perfectly correspond to the digits from 0 to 9. Unfortunately, this is often not the case. The challenge arises because clustering algorithms, including K-means and hierarchical clustering, depend on the similarity and dissimilarity between different subjects, which is determined by a metric. However, the metric used in clustering methods may not align with our labeling objectives. Therefore, we are investigating methods to iteratively learn a metric that better aligns with our goals and improves labeling accuracy.
+
+Suppose we have a set of subjects \(\{X_1, \ldots, X_n\}\). For each subject \(X_i\), we have multiple attributes, represented as \(X_i = (X_{i1}, \ldots, X_{ip})\), which forms a \(p\)-dimensional vector. Let \(d(X_i, X_j) = \{(X_i - X_j)^\top A (X_i - X_j)\}^{1/2}\) be the human-defined norm, where \(A\) is a semi-positive definite matrix with unknown parameters. Our goal is to estimate \(A\) through human-computer interaction using the following steps. The collection of \(\mathcal{A} = \{A\}\) can be considered as a space.
 
 \begin{enumerate}
-	\item Start from a guess, say $A=I$, or some $A$ comes from transfer learning.
-	\item Choose a query method from $\calQ$ to query a human.
-	\item The result can be denoted as $f(A)$ to measure how good of the current $A$.
-	\item Iterate step 2 and step 3 until that the human is happy with the result $A$.  
+    \item Start from an initial guess, such as \(A = I\) or some \(A\) derived from transfer learning.
+    \item Choose a query method from \(\mathcal{Q}\) to query a human expert.
+    \item The result can be denoted as \(f(A)\) to measure the quality of the current \(A\).
+    \item Iterate steps 2 and 3 until the human expert is satisfied with the resulting \(A\).  
 \end{enumerate}
 
-We need to consider a few things in the above approach, for example, 
+In this approach, we need to consider several factors:
 \begin{itemize}
-	\item How can we know how complex of the space  and what is the current status?
-	\item How can we develop a method to choose different types of query? and generate most informative samples corresponding to this query?
-	\item How can we develop an optimization algorithm on space $\calA$? 
+    \item How can we assess the complexity of the space and the current status? For example, if we had a progress bar, we could employ different strategies.
+    \item How can we develop a method to select different types of queries and generate the most informative samples corresponding to these queries?
+    \item How can we formulate an optimization algorithm over the space \(\mathcal{A}\)?
 \end{itemize}
+
+It is important to note that the metric described above is linear, and we should also explore more sophisticated metrics for complex problems. 
+
+This problem is sufficiently general, and we anticipate that the solution can be applied across a diverse range of fields. Potential application areas include image labeling and segmentation, natural language processing, video labeling, and even medical diagnostics. Beyond these, our approach could also benefit domains such as autonomous driving—where accurate labeling of images is crucial for training models to identify pedestrians, vehicles, and traffic signs—environmental monitoring through satellite imagery analysis, and social media sentiment analysis. By addressing the challenge of efficient metric learning, we aim to enhance model performance and streamline data labeling processes across these varied applications, ultimately driving innovation and improving outcomes in each field.
+
+
 
 
 \bibliographystyle{/Users/c082213/BoxSync/Help/References/asa_HD}
